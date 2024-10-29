@@ -10,7 +10,6 @@ const client = createClient({
     }
 });
 
-
 // Conectar a Redis
 client.connect()
     .then(() => console.log("Conectado a Redis"))
@@ -19,12 +18,8 @@ client.connect()
 // Función para Crear un registro (Create)
 async function createData(key, value) {
     try {
-        //id Math.floor(Math.random() * 1000000);
         value.id = Math.floor(Math.random() * 1000000);
-
         await client.set(key, JSON.stringify(value));
-
-
         console.log(`Dato creado: ${key}`);
     } catch (err) {
         console.error("Error al crear dato:", err);
@@ -34,24 +29,20 @@ async function createData(key, value) {
 // Función para Crear un dato nuevo en el array de 'publicaciones'
 async function addDataToArray(key, newValue) {
     try {
-        // Leer el array actual desde Redis
         const existingData = await client.get(key);
         let dataArray = existingData ? JSON.parse(existingData) : [];
 
-        dataArray.forEach(element => {
-            element.id = Math.floor(Math.random() * 1000000);
-        });
-
-        // Agregar el nuevo elemento al array
+        // Asignar ID único al nuevo dato
+        newValue.id = Math.floor(Math.random() * 1000000);
+        
         dataArray.push(newValue);
-
-        // Guardar el array actualizado en Redis
         await client.set(key, JSON.stringify(dataArray));
         console.log(`Nuevo dato añadido a ${key}`);
     } catch (err) {
         console.error("Error al añadir dato:", err);
     }
 }
+
 // Función para Leer un registro (Read)
 async function readData(key) {
     try {
@@ -82,25 +73,22 @@ async function deleteData(key) {
     }
 }
 
-// // Ejemplo de uso
-// (async () => {
-//     // Crear un dato
-//     await createData('user:1001', { nombre: "Juan", edad: 30 });
+// Función para guardar un usuario en Redis
+async function saveUser(username, userData) {
+    try {
+        await client.set(`user:${username}`, JSON.stringify(userData));
+        console.log(`Usuario guardado: ${username}`);
+    } catch (err) {
+        console.error("Error al guardar usuario:", err);
+    }
+}
 
-//     // Leer el dato
-//     const user = await readData('user:1001');
-//     console.log("Usuario leído:", user);
-
-//     // Actualizar el dato
-//     await updateData('user:1001', { nombre: "Juan", edad: 31 });
-
-//     // Leer el dato actualizado
-//     const updatedUser = await readData('user:1001');
-//     console.log("Usuario actualizado:", updatedUser);
-
-//     // Eliminar el dato
-//     await deleteData('user:1001');
-// })();
-
-// Exportar el cliente para uso en otros módulos si es necesario
-module.exports = { client, createData, readData, updateData, deleteData, addDataToArray };
+module.exports = { 
+    client, 
+    createData, 
+    readData, 
+    updateData, 
+    deleteData, 
+    addDataToArray, 
+    saveUser 
+};

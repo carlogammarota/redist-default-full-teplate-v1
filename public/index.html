@@ -32,11 +32,11 @@
             <img :src="publicacion.imagen" alt="Imagen de la publicación" class="mb-2" />
             <p>Likes: {{ publicacion.likes }}</p>
             <button 
-                @click="toggleLike(publicacion)" 
-                class="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-                {{ publicacion.dioLike && publicacion.dioLike.includes(miId) ? 'Quitar Me gusta' : 'Me gusta' }}
-            </button>
+            @click="toggleLike(publicacion)" 
+            class="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+            {{ publicacion.dioLike && publicacion.dioLike.includes(miId) ? 'Quitar Me gusta' : 'Me gusta' }}
+        </button>
         </div>
     </div>
     <script src="app.js"></script>

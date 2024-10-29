@@ -1,3 +1,4 @@
+// /socket/index.js
 const { Server } = require('socket.io');
 const { manejarRangos } = require('./modulos/rango');
 const { inicializarPublicaciones, toggleLike } = require('./modulos/publicaciones');
@@ -12,8 +13,8 @@ function initSocket(server) {
         
         inicializarPublicaciones(socket); // Enviar las publicaciones al nuevo cliente
 
-        // Manejar el evento de toggleLike
-        socket.on('toggleLike', (publicacionId) => {
+         // Manejar el evento de toggleLike
+         socket.on('toggleLike', (publicacionId) => {
             toggleLike(io, socket, publicacionId); // Pasar io y socket correctamente
         });
         

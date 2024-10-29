@@ -11,12 +11,16 @@ const app = Vue.createApp({
     mounted() {
         // Escuchar el ID del cliente
         socket.on('miId', (id) => {
-            this.miId = id; // Guardar el ID del cliente, si lo necesitas para otros propósitos
+            this.miId = id; // Guardar el ID del cliente
         });
 
         // Escuchar las publicaciones
         socket.on('publicaciones', (data) => {
-            this.publicaciones = data;
+            // Actualiza publicaciones y configura dioLike
+            this.publicaciones = data.map(pub => ({
+                ...pub,
+                dioLike: pub.usuariosQueDieronLike // Inicializa dioLike
+            }));
         });
 
         // Escuchar actualizaciones de likes
@@ -67,7 +71,7 @@ const app = Vue.createApp({
             socket.emit('toggleLike', publicacion.id);
         }
     },
-    //un watch que escuche los cambios en las publicaciones y ordene por likes
+    // Un watch que escuche los cambios en las publicaciones y ordene por likes
     watch: {
         publicaciones: {
             handler() {

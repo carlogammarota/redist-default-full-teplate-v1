@@ -3,6 +3,9 @@ const http = require('http');
 const { initSocket } = require('./socket/index');
 const { register, login } = require('./socket/modulos/authentication'); // Importar el módulo
 
+const authentication = require('./socket/modulos/authentication'); // Asegúrate de que la ruta sea correcta
+
+
 const app = express();
 const server = http.createServer(app);
 const io = initSocket(server);
@@ -10,7 +13,8 @@ const io = initSocket(server);
 // Middleware para servir archivos estáticos
 app.use(express.static('public'));
 app.use(express.json()); // Para parsear JSON en las solicitudes
-
+// Configura la autenticación
+authentication(app);
 // Manejar conexiones de Socket.io
 io.on('connection', (socket) => {
     console.log('Usuario conectado:', socket.id);
@@ -28,12 +32,11 @@ io.on('connection', (socket) => {
 
     // Inicio de sesión
     socket.on('login', async ({ username, password }) => {
-        socket.emit('loginSuccess', "result");
         try {
             const result = await login(username, password);
             socket.emit('loginSuccess', {
                 token: result.token,
-                username,
+                username
             });
             return result;
         } catch (error) {
