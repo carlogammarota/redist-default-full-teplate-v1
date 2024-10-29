@@ -1,16 +1,31 @@
-const socket = io();
+const socket = io(); // Aquí se establece la conexión al servidor
 
 const app = Vue.createApp({
     data() {
         return {
             rangos: [],
-            miId: null // Para almacenar el ID del cliente
+            publicaciones: [],
+            miId: null // Asegúrate de declarar miId en data()
         };
     },
     mounted() {
         // Escuchar el ID del cliente
         socket.on('miId', (id) => {
-            this.miId = id; // Guardar el ID del cliente
+            this.miId = id; // Guardar el ID del cliente, si lo necesitas para otros propósitos
+        });
+
+        // Escuchar las publicaciones
+        socket.on('publicaciones', (data) => {
+            this.publicaciones = data;
+        });
+
+        // Escuchar actualizaciones de likes
+        socket.on('likeActualizado', ({ id, likes, dioLike }) => {
+            const publicacion = this.publicaciones.find(p => p.id === id);
+            if (publicacion) {
+                publicacion.likes = likes;
+                publicacion.dioLike = dioLike; // Actualiza el estado de "Me gusta" para este cliente
+            }
         });
 
         // Escuchar todos los rangos al conectarse
@@ -43,9 +58,23 @@ const app = Vue.createApp({
     methods: {
         actualizarRango(rango) {
             // Solo permitir actualizar el rango si es del cliente actual
-            if (rango.id === this.miId) {
+            if (rango.id === this.miId) { // Cambiar a this.miId
                 socket.emit('actualizarRango', rango);
             }
+        },
+        toggleLike(publicacion) {
+            // Emitir el evento para alternar "Me gusta"
+            socket.emit('toggleLike', publicacion.id);
+        }
+    },
+    //un watch que escuche los cambios en las publicaciones y ordene por likes
+    watch: {
+        publicaciones: {
+            handler() {
+                console.log('Publicaciones actualizadas');
+                this.publicaciones.sort((a, b) => b.likes - a.likes);
+            },
+            deep: true
         }
     }
 });

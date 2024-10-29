@@ -25,8 +25,19 @@
             />
             <p v-if="rango.id !== miId" class="text-gray-500">Deshabilitado</p>
         </div>
-            
-       
+        <h1 class="text-2xl font-bold mb-4">Ofertas</h1>
+        <div v-for="publicacion in publicaciones" :key="publicacion.id" class="bg-white p-4 mb-2 shadow rounded">
+            <p class="font-bold">{{ publicacion.titulo }}</p>
+            <p>Precio: ${{ publicacion.precio }}</p>
+            <img :src="publicacion.imagen" alt="Imagen de la publicación" class="mb-2" />
+            <p>Likes: {{ publicacion.likes }}</p>
+            <button 
+                @click="toggleLike(publicacion)" 
+                class="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+                {{ publicacion.dioLike && publicacion.dioLike.includes(miId) ? 'Quitar Me gusta' : 'Me gusta' }}
+            </button>
+        </div>
     </div>
     <script src="app.js"></script>
 </body>

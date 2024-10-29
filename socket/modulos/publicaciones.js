@@ -1,49 +1,32 @@
-// /socket/modulos/publicaciones.js
+let publicaciones = [
+    { id: 1, titulo: "Oferta 1", precio: 100, imagen: "https://picsum.photos/200/300", likes: 0, usuariosQueDieronLike: [] },
+    { id: 2, titulo: "Oferta 2", precio: 200, imagen: "https://picsum.photos/200/301", likes: 0, usuariosQueDieronLike: [] },
+    { id: 3, titulo: "Oferta 3", precio: 300, imagen: "https://picsum.photos/200/302", likes: 0, usuariosQueDieronLike: [] }
+];
 
-const { client } = require('../../Redis'); // Asegúrate de tener configurado Redis
-
-async function inicializarPublicaciones() {
-    const publicaciones = [
-        { id: '1', nombre: 'Tomate Perita 3kg', precio: 500, likes: 0 },
-        { id: '2', nombre: 'Cebolla Blanca 1kg', precio: 300, likes: 0 },
-    ];
-
-    publicaciones.forEach(async (pub) => {
-        await client.hSet(`publicacion:${pub.id}`, pub);
-    });
+function inicializarPublicaciones(socket) {
+    // Emitir todas las publicaciones al cliente que se conecta
+    socket.emit('publicaciones', publicaciones);
 }
 
-async function obtenerPublicaciones() {
-    const keys = await client.keys('publicacion:*');
-    const publicaciones = [];
-    
-    for (const key of keys) {
-        const publicacion = await client.hGetAll(key);
-        publicaciones.push(publicacion);
-    }
-    
-    return publicaciones;
-}
+function toggleLike(io, socket, publicacionId) {
+    const publicacion = publicaciones.find(pub => pub.id === publicacionId);
+    if (publicacion) {
+        const usuarioId = socket.id;
 
-async function toggleLike(publicacionId, usuarioId) {
-    const likeKey = `publicacion:${publicacionId}:likes`;
-    const key = `publicacion:${publicacionId}`;
+        if (publicacion.usuariosQueDieronLike.includes(usuarioId)) {
+            // Quitar like
+            publicacion.likes--;
+            publicacion.usuariosQueDieronLike = publicacion.usuariosQueDieronLike.filter(id => id !== usuarioId);
+        } else {
+            // Agregar like
+            publicacion.likes++;
+            publicacion.usuariosQueDieronLike.push(usuarioId);
+        }
 
-    // Verificar si el usuario ya ha dado "Me gusta"
-    const yaDioLike = await client.sIsMember(likeKey, usuarioId);
-
-    let nuevosLikes;
-    if (yaDioLike) {
-        // Eliminar "Me gusta"
-        await client.sRem(likeKey, usuarioId);
-        nuevosLikes = await client.hIncrBy(key, 'likes', -1);
-        return { nuevosLikes, dioLike: false }; // Devolvemos que ya no dio "Me gusta"
-    } else {
-        // Agregar "Me gusta"
-        await client.sAdd(likeKey, usuarioId);
-        nuevosLikes = await client.hIncrBy(key, 'likes', 1);
-        return { nuevosLikes, dioLike: true }; // Devolvemos que ahora dio "Me gusta"
+        // Emitir la actualización a todos los clientes
+        io.emit('likeActualizado', { id: publicacion.id, likes: publicacion.likes, dioLike: publicacion.usuariosQueDieronLike });
     }
 }
 
-module.exports = { inicializarPublicaciones, obtenerPublicaciones, toggleLike };
+module.exports = { inicializarPublicaciones, toggleLike };
